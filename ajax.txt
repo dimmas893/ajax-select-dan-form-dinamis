@@ -1,0 +1,102 @@
+
+        var room = 0; // Start with 0 forms
+
+        function education_fields() {
+            room++;
+            var objTo = document.getElementById('education_fields');
+            var divtest = document.createElement("div");
+            var uniqueId = 'duplicate' + room;
+            var ioNumberId = 'io_number' + room;
+            var projectNameId = 'project_name' + room;
+            var additionalTextId = 'additional_text' + room; // Unique ID for additional text input
+            var dateInputId = 'date_input' + room; // Unique ID for date input
+            var fileFormatId = 'file_format' + room; // Unique ID for file format select
+
+            divtest.setAttribute("class", "form-group removeclass" + room);
+            divtest.innerHTML =
+                '<div class="row mb-2"><div class="col-md-4"> <select id="' + uniqueId +
+                '" class="form-control dynamic-select" name="invoice"></select></div><div class="col-md-4 mb-2"><div class="input-group-btn"><input type="text" class="form-control" id="' +
+                ioNumberId +
+                '" placeholder="Io Number" readonly></div></div><div class="col-md-4 mb-2"><div class="input-group-btn"><input type="text" class="form-control" id="' +
+                projectNameId +
+                '" placeholder="Project Name" readonly></div></div></div><div class="row"><div class="col-md-4 mb-2"><div class="input-group-btn"><input type="text" class="form-control" id="' +
+                additionalTextId +
+                '" placeholder="Nomor Invoice"></div></div><div class="col-md-4 mb-2"><div class="input-group-btn"><input type="date" class="form-control" id="' +
+                dateInputId + '"></div></div><div class="col-md-4 mb-2"><div class="input-group-btn"><select id="' +
+                fileFormatId +
+                '" class="form-control"><option value="" selected disabled>---Select type---</option><option value="pdf">PDF</option><option value="excel">Excel</option><option value="word">Word</option></select></div></div><div class="col-md-3"><div class="input-group-btn"><button class="btn btn-danger" type="button" onclick="remove_education_fields(' +
+                room +
+                ');"> Delete</button></div></div></div>';
+            objTo.appendChild(divtest);
+
+            // Initialize Select2 for the newly added select element
+            $('#' + uniqueId).select2({
+                // Your Select2 options
+            });
+
+            // Add change event listener to the dynamically added select element
+            $('#' + uniqueId).on('change', function() {
+                console.log('Selected value for ' + uniqueId + ': ' + $(this).val());
+                var valueid = $(this).val();
+                $.ajax({
+                    url: '{{ url('invoice/selectSalesDistributionReport') }}',
+                    method: 'get',
+                    data: {
+                        id: valueid
+                    },
+                    success: function(response) {
+                        // Handle the response as needed
+                        $("#" + ioNumberId).val(response.io_number);
+                        $("#" + projectNameId).val(response.project_name);
+                        console.log(response);
+                    },
+                    error: function(error) {
+                        console.error('Error fetching data:', error);
+                    }
+                });
+            });
+
+            // Make AJAX request for the newly added select element
+            $.ajax({
+                url: '{{ url('invoice/SalesDistributionReportGet') }}',
+                method: 'get',
+                success: function(response) {
+                    // Create an HTML string with option tags
+                    let optionsHtml = '<option value="" selected disabled>---select sales number---</option>' +
+                        response
+                        .map(function(value) {
+                            return '<option value="' + value + '">' + value + '</option>';
+                        }).join('');
+
+                    // Set the HTML content of the select element
+                    $('#' + uniqueId).html(optionsHtml);
+                },
+                error: function(error) {
+                    console.error('Error fetching data:', error);
+                }
+            });
+
+            // Update button text based on the number of forms
+            updateButtonText();
+        }
+
+        function remove_education_fields(index) {
+            // Remove the form with the specified index
+            $('#duplicate' + index).remove();
+
+            // Update button text based on the number of forms
+            updateButtonText();
+        }
+
+        function updateButtonText() {
+            // Get the button element
+            var button = $('#formButton');
+
+            // Update button text based on the number of forms
+            if (room > 0) {
+                button.text('Tambah Form');
+            } else {
+                button.text('Buat Form');
+            }
+        }
+
